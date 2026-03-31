@@ -740,33 +740,31 @@
   <!-- Draggable divider -->
   <div class="divider" id="divider"></div>
 
-  <!-- Right pane: full-height PDF (local) or arXiv link panel (share mode) -->
+  <!-- Right pane: PDF iframe + arXiv fallback buttons when no PDF -->
   <div class="right-pane" id="right-pane">
-    <div class="share-arxiv-pane" id="share-arxiv-pane"><div class="share-arxiv-inner"><div class="share-arxiv-icon">📄</div><p class="share-arxiv-title" id="share-arxiv-title"></p><div class="share-arxiv-btns"><a class="share-btn-primary" id="share-btn-abs" href="#" target="_blank">🔗 查看摘要页</a><a class="share-btn-secondary" id="share-btn-pdf" href="#" target="_blank">⬇ 下载 PDF</a></div></div></div>
+    <iframe id="pdf-iframe" class="pdf-iframe" src="" title="PDF Preview"></iframe>
+    <div class="no-pdf" id="no-pdf" style="display:none">
+      <div class="share-arxiv-inner">
+        <div class="share-arxiv-icon">📄</div>
+        <p class="share-arxiv-title" id="share-arxiv-title"></p>
+        <div class="share-arxiv-btns">
+          <a class="share-btn-primary" id="share-btn-abs" href="#" target="_blank">🔗 查看摘要页</a>
+          <a class="share-btn-secondary" id="share-btn-pdf" href="#" target="_blank">⬇ 下载 PDF</a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
   var current = 0;
   var total = 8;
-  var pdfUrls = ["", "", "", "", "", "", "", ""];
+  var pdfUrls = ["pdfs/2603.28387v1.pdf", "pdfs/2603.28568v1.pdf", "pdfs/2603.28555v1.pdf", "pdfs/2603.28554v1.pdf", "pdfs/2603.28333v1.pdf", "pdfs/2603.28763.pdf", "pdfs/2603.28733.pdf", "pdfs/2603.28767.pdf"];
   var arxivUrls = [{"url": "http://arxiv.org/abs/2603.28387v1", "pdf": "https://arxiv.org/pdf/2603.28387v1", "id": "2603.28387v1"}, {"url": "http://arxiv.org/abs/2603.28568v1", "pdf": "https://arxiv.org/pdf/2603.28568v1", "id": "2603.28568v1"}, {"url": "http://arxiv.org/abs/2603.28555v1", "pdf": "https://arxiv.org/pdf/2603.28555v1", "id": "2603.28555v1"}, {"url": "http://arxiv.org/abs/2603.28554v1", "pdf": "https://arxiv.org/pdf/2603.28554v1", "id": "2603.28554v1"}, {"url": "http://arxiv.org/abs/2603.28333v1", "pdf": "https://arxiv.org/pdf/2603.28333v1", "id": "2603.28333v1"}, {"url": "https://arxiv.org/abs/2603.28763", "pdf": "https://arxiv.org/pdf/2603.28763", "id": "2603.28763"}, {"url": "https://arxiv.org/abs/2603.28733", "pdf": "https://arxiv.org/pdf/2603.28733", "id": "2603.28733"}, {"url": "https://arxiv.org/abs/2603.28767", "pdf": "https://arxiv.org/pdf/2603.28767", "id": "2603.28767"}];
-  var shareMode = true;
   var visibleCards = [];  // indices of cards visible after search
 
   // ── PDF / arXiv pane ──
   function loadPdf(n) {
-    if (shareMode) {
-      var info = arxivUrls[n] || {};
-      var titleEl = document.getElementById('share-arxiv-title');
-      var absBtn = document.getElementById('share-btn-abs');
-      var pdfBtn = document.getElementById('share-btn-pdf');
-      var card = document.getElementById('card-' + n);
-      if (titleEl) titleEl.textContent = card ? (card.dataset.title || '') : '';
-      if (absBtn) absBtn.href = info.url || '#';
-      if (pdfBtn) pdfBtn.href = info.pdf || '#';
-      return;
-    }
     var url = pdfUrls[n] || '';
     var iframe = document.getElementById('pdf-iframe');
     var noPdf = document.getElementById('no-pdf');
@@ -777,6 +775,15 @@
     } else {
       iframe.style.display = 'none';
       noPdf.style.display = 'flex';
+      // Populate arXiv fallback buttons
+      var info = arxivUrls[n] || {};
+      var card = document.getElementById('card-' + n);
+      var titleEl = document.getElementById('share-arxiv-title');
+      var absBtn = document.getElementById('share-btn-abs');
+      var pdfBtn = document.getElementById('share-btn-pdf');
+      if (titleEl) titleEl.textContent = card ? (card.dataset.title || '') : '';
+      if (absBtn) absBtn.href = info.url || '#';
+      if (pdfBtn) pdfBtn.href = info.pdf || '#';
     }
   }
 

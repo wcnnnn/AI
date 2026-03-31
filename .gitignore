@@ -22,6 +22,9 @@ papers/
 论文图片/
 Papers/
 
+# ── git worktree temp dir (used by --share) ──
+.gh-pages-worktree/
+
 # ── Obsidian local files ──
 .obsidian/
 

@@ -149,47 +149,56 @@ def run_workflow(config, args):
                         f'</head><body><a href="daily_{today}.html">'
                         f'AI论文日报 {today}</a></body></html>')
 
-            # Push output/share/ contents to gh-pages branch
+            # Push output/share/ contents to gh-pages branch using worktree
+            # (never touches the current working directory / main branch files)
+            import shutil
+            worktree_dir = os.path.join(project_root, '.gh-pages-worktree')
             try:
                 def run_git(cmd, cwd=project_root):
-                    result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+                    result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, encoding='utf-8')
                     if result.returncode != 0:
                         raise RuntimeError(result.stderr.strip())
                     return result.stdout.strip()
 
-                # Make sure gh-pages branch exists (orphan if first time)
-                branches = run_git(['git', 'branch', '-a'])
-                if 'gh-pages' not in branches:
-                    logger.info("Creating orphan gh-pages branch...")
+                # Clean up any leftover worktree from a previous failed run
+                if os.path.exists(worktree_dir):
+                    run_git(['git', 'worktree', 'remove', '--force', worktree_dir])
+
+                # Check if gh-pages branch already exists
+                all_branches = run_git(['git', 'branch', '-a'])
+                gh_pages_exists = 'gh-pages' in all_branches
+
+                if not gh_pages_exists:
+                    # Create orphan gh-pages branch with an empty commit so worktree can use it
+                    logger.info("Creating gh-pages branch...")
                     run_git(['git', 'checkout', '--orphan', 'gh-pages'])
-                    run_git(['git', 'rm', '-rf', '.'])
-                else:
-                    run_git(['git', 'checkout', 'gh-pages'])
+                    run_git(['git', 'reset', '--hard'])
+                    run_git(['git', 'commit', '--allow-empty', '-m', 'init gh-pages'])
+                    run_git(['git', 'checkout', 'main'])
 
-                # Copy share files into root of worktree
-                import shutil
+                # Add worktree for gh-pages in a temp dir outside the main tree
+                run_git(['git', 'worktree', 'add', worktree_dir, 'gh-pages'])
+
+                # Copy share files into the worktree
                 for fname in os.listdir(share_dir):
-                    src = os.path.join(share_dir, fname)
-                    dst = os.path.join(project_root, fname)
-                    shutil.copy2(src, dst)
+                    shutil.copy2(os.path.join(share_dir, fname), os.path.join(worktree_dir, fname))
 
-                run_git(['git', 'add', 'index.html', f'daily_{today}.html'])
-                run_git(['git', 'commit', '-m', f'Daily report {today}'])
-                run_git(['git', 'push', 'origin', 'gh-pages'])
+                # Commit and push from inside the worktree
+                run_git(['git', 'add', '-A'], cwd=worktree_dir)
+                run_git(['git', 'commit', '-m', f'Daily report {today}'], cwd=worktree_dir)
+                run_git(['git', 'push', 'origin', 'gh-pages'], cwd=worktree_dir)
 
-                # Switch back to original branch
-                run_git(['git', 'checkout', '-'])
+                # Clean up worktree
+                run_git(['git', 'worktree', 'remove', '--force', worktree_dir])
 
                 repo_url = run_git(['git', 'remote', 'get-url', 'origin'])
-                # Convert SSH to HTTPS for display
-                if repo_url.startswith('git@github.com:'):
-                    repo_slug = repo_url.replace('git@github.com:', '').replace('.git', '')
-                    pages_url = f'https://{repo_slug.split("/")[0]}.github.io/{repo_slug.split("/")[1]}/'
-                elif 'github.com' in repo_url:
-                    repo_slug = repo_url.split('github.com/')[-1].replace('.git', '')
-                    pages_url = f'https://{repo_slug.split("/")[0]}.github.io/{repo_slug.split("/")[1]}/'
+                repo_url_clean = repo_url.split('@')[-1] if '@' in repo_url else repo_url
+                if 'github.com' in repo_url_clean:
+                    repo_slug = repo_url_clean.split('github.com/')[-1].replace('.git', '').strip('/')
+                    parts = repo_slug.split('/')
+                    pages_url = f'https://{parts[0]}.github.io/{parts[1]}/' if len(parts) >= 2 else repo_url_clean
                 else:
-                    pages_url = '(enable GitHub Pages in repo Settings → Pages → branch: gh-pages)'
+                    pages_url = '(open GitHub repo → Settings → Pages → branch: gh-pages)'
 
                 logger.info("=" * 50)
                 logger.info(f"✅ Pushed to gh-pages!")
@@ -197,6 +206,12 @@ def run_workflow(config, args):
                 logger.info("=" * 50)
             except Exception as e:
                 logger.error(f"Git push failed: {e}")
+                # Clean up worktree if it exists
+                if os.path.exists(worktree_dir):
+                    try:
+                        run_git(['git', 'worktree', 'remove', '--force', worktree_dir])
+                    except Exception:
+                        pass
                 logger.info(f"Share HTML is at: {html_path}")
                 logger.info("You can manually push the output/share/ folder to your gh-pages branch.")
 

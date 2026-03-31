@@ -1,0 +1,88 @@
+# AI Paper Recommendation Configuration
+
+# 用户研究兴趣关键词
+keywords:
+  # AI for Science 方向
+  - AI for Science
+  - scientific machine learning
+  - deep learning for science
+  # 化学逆合成/分子方向
+  - retrosynthesis
+  - reaction prediction
+  - molecular generation
+  - molecular dynamics
+  - molecule
+  # 生物蛋白方向
+  - protein structure
+  - protein folding
+  - AlphaFold
+  # 具身智能/VLM方向
+  - embodied intelligence
+  - embodied AI
+  - vision-language
+  - VLM
+
+# 排除的关键词（可选）
+exclude_keywords:
+  - biology
+  - physics
+
+# 过滤相关性阈值 (0-1，越低越宽松)
+relevance_threshold: 0.05
+max_papers_per_day: 8
+
+# 论文来源分配
+arxiv_limit: 5    # 每天从arXiv获取的论文数量
+modelscope_limit: 3  # 每天从ModelScope获取的论文数量
+
+# Obsidian配置
+obsidian:
+  # Obsidian vault根路径（替换为你的Obsidian仓库路径）
+  vault_path: "YOUR_OBSIDIAN_VAULT_PATH"
+  # 笔记存放文件夹
+  notes_folder: "Papers"
+  # PDF存放路径
+  pdf_folder: "论文库"
+  # 图片存放路径
+  images_folder: "论文图片"
+  # 附件文件夹（用于笔记中的嵌入文件）
+  attachments_folder: "_attachments"
+
+# arXiv配置
+arxiv:
+  categories:
+    - cs.AI
+    - cs.LG
+    - cs.CV
+    - cs.CL
+    - cs.NE
+    - q-bio.BM
+    - q-bio.CB
+    - q-bio.QM
+    - physics.chem-ph
+  max_results: 80
+
+# LLM API配置 (用于生成中文摘要)
+llm_api:
+  provider: "anthropic"
+  api_key: "YOUR_MINIMAX_API_KEY"  # 替换为你的MiniMax API Key
+  model: "MiniMax-M2.5"
+  base_url: "https://api.minimax.chat/v1"
+
+# Mineru API配置 (用于PDF转Markdown)
+mineru:
+  enabled: true  # 设为true启用Mineru
+  api_key: "YOUR_MINERU_API_KEY"  # 替换为你的Mineru API密钥
+  # 或者使用本地部署的Mineru
+  local_url: "http://localhost:8000"
+
+# 调度配置
+scheduler:
+  # cron表达式: 分 时 日 月 周
+  cron: "0 8 * * *"  # 每天早上8点运行
+  enabled: true
+
+# 日志配置
+logging:
+  level: "INFO"
+  file: "logs/app.log"

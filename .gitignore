@@ -1,0 +1,31 @@
+# ── Sensitive config (contains API keys) ──
+config.yaml
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# ── Local generated output ──
+output/
+logs/
+papers/
+
+# ── Local paper data (Chinese-named folders) ──
+论文库/
+论文图片/
+Papers/
+
+# ── Obsidian local files ──
+.obsidian/
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+desktop.ini

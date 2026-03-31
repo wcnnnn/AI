@@ -1,0 +1,22 @@
+# Python dependencies
+# Core dependencies
+arxiv==2.1.0
+requests==2.31.0
+beautifulsoup4==4.12.3
+pyyaml==6.0.1
+python-dateutil==2.8.2
+
+# PDF processing
+pypdf==4.2.0
+pdfplumber==0.11.0
+pymupdf==1.24.3
+
+# Image processing
+Pillow==10.3.0
+
+# LLM API clients
+openai==1.12.0
+
+# Utilities
+openpyxl==3.1.2
+tenacity==8.2.3
